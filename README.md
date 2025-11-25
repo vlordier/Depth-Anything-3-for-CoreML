@@ -19,6 +19,9 @@ Quick Start
 	```
 
 	- By default the converter expects this directory to live at `DA3-SMALL/` relative to the repo root. If you move it elsewhere or want to use a different checkpoint, update `DEFAULT_WEIGHTS_PATH` in `coreml_converter/convert2coreml.py` accordingly.
+	- If you want to use a different model version (for example, da3-large), you will also need to update the parameters in `_build_head` and `_build_backbone` 
+	
+		**(TODO: add a dict to store parameters for all versions)**.
 
 4. **Sync the Python environment** (installs the locked dependencies declared in `pyproject.toml`):
 
@@ -33,7 +36,7 @@ Quick Start
 	```
 
 	- output `da3.mlpackage` by default.
-	- Pass `--run-test` to also execute a quick inference on `frame_0000.jpg` prior to export (useful for verifying the PyTorch model setup):
+	- Pass `--run-test` to also execute a quick inference on `assets/examples/SOH/000.jpg` prior to export (useful for verifying the PyTorch model setup):
 
 	  ```sh
 	  uv run coreml_converter/convert2coreml.py --run-test
