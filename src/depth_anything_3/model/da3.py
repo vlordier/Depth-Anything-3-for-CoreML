@@ -103,7 +103,7 @@ class DepthAnything3Net(nn.Module):
         intrinsics: torch.Tensor | None = None,
         export_feat_layers: list[int] | None = [],
         infer_gs: bool = False,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         """
         Forward pass through the network.
 
@@ -138,6 +138,7 @@ class DepthAnything3Net(nn.Module):
 
         # Extract auxiliary features if requested
         output.aux = self._extract_auxiliary_features(aux_feats, export_feat_layers, H, W)
+        output = output["depth"]
 
         return output
 

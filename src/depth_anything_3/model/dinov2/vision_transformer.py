@@ -239,7 +239,7 @@ class DinoVisionTransformer(nn.Module):
             kwargs["size"] = (w0, h0)
         patch_pos_embed = nn.functional.interpolate(
             patch_pos_embed.reshape(1, M, M, dim).permute(0, 3, 1, 2),
-            mode="bicubic",
+            mode="bilinear",
             antialias=self.interpolate_antialias,
             **kwargs,
         )
@@ -309,9 +309,12 @@ class DinoVisionTransformer(nn.Module):
                     logger.info("Using camera conditions provided by the user")
                     cam_token = kwargs.get("cam_token")
                 else:
-                    ref_token = self.camera_token[:, :1].expand(B, -1, -1)
-                    src_token = self.camera_token[:, 1:].expand(B, S - 1, -1)
-                    cam_token = torch.cat([ref_token, src_token], dim=1)
+                    if S == 1:
+                        cam_token = self.camera_token[:, :1].expand(B, S, -1)
+                    else:
+                        ref_token = self.camera_token[:, :1].expand(B, 1, -1)
+                        src_token = self.camera_token[:, 1:2].expand(B, S - 1, -1)
+                        cam_token = torch.cat([ref_token, src_token], dim=1)
                 x[:, :, 0] = cam_token
 
             if self.alt_start != -1 and i >= self.alt_start and i % 2 == 1:
