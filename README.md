@@ -3,7 +3,7 @@ Depth Anything 3 → CoreML
 
 Quick Start
 -----------
-
+> If you want **multi-output** (depth, depth_conf, extrinsics, intrinsics), you can use this branch [feat/multi-output](https://github.com/LSQzzx/Depth-Anything-3-for-CoreML/tree/feat/multi-output)
 1. **Install uv** (if you do not already have it): follow the instructions at <https://docs.astral.sh/uv/getting-started/installation/>.
 2. **Install git-lfs** (required because the checkpoint is stored with large files). On macOS:
 
