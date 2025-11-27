@@ -53,10 +53,12 @@ def as_homogeneous(ext):
 
 @torch.jit.script
 def affine_inverse(A: torch.Tensor):
-    R = A[..., :3, :3]  # ..., 3, 3
-    T = A[..., :3, 3:]  # ..., 3, 1
-    P = A[..., 3:, :]  # ..., 1, 4
-    return torch.cat([torch.cat([R.mT, -R.mT @ T], dim=-1), P], dim=-2)
+    R = A[..., :3, :3]           # ...,3,3
+    T = A[..., :3, 3:]           # ...,3,1
+    P = A[..., 3:, :]             # ...,1,4
+
+    R_T = R.transpose(-2, -1)    # 替换 R.mT
+    return torch.cat([torch.cat([R_T, -R_T @ T], dim=-1), P], dim=-2)
 
 
 def transpose_last_two_axes(arr):

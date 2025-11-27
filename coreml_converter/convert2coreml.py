@@ -17,13 +17,15 @@ print(Path.cwd())
 from depth_anything_3.model.da3 import DepthAnything3Net
 from depth_anything_3.model.dinov2.dinov2 import DinoV2
 from depth_anything_3.model.dualdpt import DualDPT
+from depth_anything_3.model.cam_enc import CameraEnc
+from depth_anything_3.model.cam_dec import CameraDec
 
 INPUT_SIZE = 504
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 DEFAULT_WEIGHTS_PATH = Path(Path.cwd() / "DA3-SMALL" / "model.safetensors")
 DEFAULT_COREML_OUTPUT = Path("da3.mlpackage")
-EXAMPLE_INPUT_SHAPE = (1, 1, 3, INPUT_SIZE, INPUT_SIZE)
+EXAMPLE_INPUT_SHAPE = (1, 4, 3, INPUT_SIZE, 378)
 
 
 def _build_backbone() -> DinoV2:
@@ -45,8 +47,18 @@ def _build_head() -> DualDPT:
         pos_embed=False,
     )
 
+def _build_camera_encoder() -> CameraEnc:
+    return CameraEnc(
+        dim_out=384
+    )
+
+def _build_camera_decoder() -> CameraDec:
+    return CameraDec(
+        dim_in=768
+    )
+
 def build_depth_estimator() -> DepthAnything3Net:
-    return DepthAnything3Net(net=_build_backbone(), head=_build_head())
+    return DepthAnything3Net(net=_build_backbone(), head=_build_head(), cam_enc=_build_camera_encoder(), cam_dec=_build_camera_decoder())
 
 def load_depth_estimator(weights_path: Path) -> DepthAnything3Net:
     model = build_depth_estimator()
@@ -95,7 +107,16 @@ def visualize_depth(depth: numpy.ndarray) -> Image.Image:
 def export_coreml_model(depth_model: DepthAnything3Net, output_path: Path) -> None:
     example_input = torch.rand(EXAMPLE_INPUT_SHAPE)
     traced_model = torch.jit.trace(depth_model, example_input)
-    model_from_trace = ct.convert(traced_model, inputs=[ct.TensorType(shape=EXAMPLE_INPUT_SHAPE)])
+    model_from_trace = ct.convert(
+        traced_model,
+        inputs=[ct.TensorType(shape=EXAMPLE_INPUT_SHAPE, name="inputs")],
+        outputs=[
+            ct.TensorType(name="depth"),
+            ct.TensorType(name="depth_conf"),
+            ct.TensorType(name="extrinsics"),
+            ct.TensorType(name="intrinsics"),
+        ],
+        )
     model_from_trace.save(str(output_path))
 
 def parse_args() -> argparse.Namespace:

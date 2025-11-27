@@ -138,9 +138,15 @@ class DepthAnything3Net(nn.Module):
 
         # Extract auxiliary features if requested
         output.aux = self._extract_auxiliary_features(aux_feats, export_feat_layers, H, W)
-        output = output["depth"]
+        
+        output2 = (
+            output["depth"],      # (N, H, W)
+            output["depth_conf"], # (N, H, W)
+            output["extrinsics"],
+            output["intrinsics"]
+        )
 
-        return output
+        return output2
 
     def _process_depth_head(
         self, feats: list[torch.Tensor], H: int, W: int

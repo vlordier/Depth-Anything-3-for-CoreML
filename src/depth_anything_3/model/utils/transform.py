@@ -44,23 +44,31 @@ def pose_encoding_to_extri_intri(
 ):
     """Convert a pose encoding back to camera extrinsics and intrinsics."""
 
-    T = pose_encoding[..., :3]
-    quat = pose_encoding[..., 3:7]
-    fov_h = pose_encoding[..., 7]
-    fov_w = pose_encoding[..., 8]
+    T = pose_encoding[..., :3]           # (B,3)
+    quat = pose_encoding[..., 3:7]       # (B,4)
+    fov_h = pose_encoding[..., 7]        # (B,)
+    fov_w = pose_encoding[..., 8]        # (B,)
 
-    R = quat_to_mat(quat)
-    extrinsics = torch.cat([R, T[..., None]], dim=-1)
+    R = quat_to_mat(quat)                # (B,3,3)
 
+    # --- extrinsics ---
+    # 将 T 扩展最后一维，确保维度匹配
+    T_exp = T[..., :, None]              # (B,3,1)
+    extrinsics = torch.cat([R, T_exp], dim=-1)  # (B,3,4)
+
+    # --- intrinsics ---
     H, W = image_size_hw
-    fy = (H / 2.0) / torch.clamp(torch.tan(fov_h / 2.0), 1e-6)
-    fx = (W / 2.0) / torch.clamp(torch.tan(fov_w / 2.0), 1e-6)
-    intrinsics = torch.zeros(pose_encoding.shape[:2] + (3, 3), device=pose_encoding.device)
-    intrinsics[..., 0, 0] = fx
-    intrinsics[..., 1, 1] = fy
-    intrinsics[..., 0, 2] = W / 2
-    intrinsics[..., 1, 2] = H / 2
-    intrinsics[..., 2, 2] = 1.0  # Set the homogeneous coordinate to 1
+    fy = (H / 2.0) / torch.clamp(torch.tan(fov_h / 2.0), 1e-6)  # (B,)
+    fx = (W / 2.0) / torch.clamp(torch.tan(fov_w / 2.0), 1e-6)  # (B,)
+
+    zeros = torch.zeros_like(fx)
+    ones = torch.ones_like(fx)
+    # 构造每 batch 的 3x3 intrinsics 矩阵
+    intrinsics = torch.stack([
+        torch.stack([fx, zeros, W/2*ones], dim=-1),
+        torch.stack([zeros, fy, H/2*ones], dim=-1),
+        torch.stack([zeros, zeros, ones], dim=-1)
+    ], dim=-2)  # (B,3,3)
 
     return extrinsics, intrinsics
 
