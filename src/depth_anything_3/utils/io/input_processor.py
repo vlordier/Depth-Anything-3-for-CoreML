@@ -21,15 +21,18 @@ In addition, it parallelizes per-image preprocessing using the provided `paralle
 
 from __future__ import annotations
 
-from typing import Sequence
+from typing import TYPE_CHECKING
+
 import cv2
 import numpy as np
 import torch
 import torchvision.transforms as T
-from PIL import Image
-
 from depth_anything_3.utils.logger import logger
 from depth_anything_3.utils.parallel_utils import parallel_execution
+from PIL import Image
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class InputProcessor:
@@ -56,7 +59,7 @@ class InputProcessor:
     NORMALIZE = T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     PATCH_SIZE = 14
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     # -----------------------------
@@ -127,8 +130,8 @@ class InputProcessor:
             raise ValueError("Length of extrinsics must match images when provided.")
         if intrinsics is not None and len(intrinsics) != len(images):
             raise ValueError("Length of intrinsics must match images when provided.")
-        exts_list = [e for e in extrinsics] if extrinsics is not None else None
-        ixts_list = [k for k in intrinsics] if intrinsics is not None else None
+        exts_list = list(extrinsics) if extrinsics is not None else None
+        ixts_list = list(intrinsics) if intrinsics is not None else None
         return exts_list, ixts_list
 
     def _run_parallel(
@@ -251,7 +254,7 @@ class InputProcessor:
         # Convert to tensor & normalize
         img_tensor = self._normalize_image(pil_img)
         _, H, W = img_tensor.shape
-        assert (W, H) == (w, h), "Tensor size mismatch with PIL image size after processing."
+        assert (w, h) == (W, H), "Tensor size mismatch with PIL image size after processing."
 
         # Return: (img_tensor, (H, W), intrinsic, extrinsic)
         return img_tensor, (H, W), intrinsic, extrinsic
@@ -327,8 +330,8 @@ class InputProcessor:
         if longest == target_size:
             return img
         scale = target_size / float(longest)
-        new_w = max(1, int(round(w * scale)))
-        new_h = max(1, int(round(h * scale)))
+        new_w = max(1, round(w * scale))
+        new_h = max(1, round(h * scale))
         interpolation = cv2.INTER_CUBIC if scale > 1.0 else cv2.INTER_AREA
         arr = cv2.resize(np.asarray(img), (new_w, new_h), interpolation=interpolation)
         return Image.fromarray(arr)
@@ -339,8 +342,8 @@ class InputProcessor:
         if shortest == target_size:
             return img
         scale = target_size / float(shortest)
-        new_w = max(1, int(round(w * scale)))
-        new_h = max(1, int(round(h * scale)))
+        new_w = max(1, round(w * scale))
+        new_h = max(1, round(h * scale))
         interpolation = cv2.INTER_CUBIC if scale > 1.0 else cv2.INTER_AREA
         arr = cv2.resize(np.asarray(img), (new_w, new_h), interpolation=interpolation)
         return Image.fromarray(arr)
@@ -411,7 +414,7 @@ if __name__ == "__main__":
         Ks_in: Sequence[np.ndarray | None] | None = None,
         Ks_out: Sequence[np.ndarray | None] | None = None,
     ):
-        B, N, C, H, W = tensor.shape
+        _B, N, _C, H, W = tensor.shape
         print(f"[{tag}] shape={tuple(tensor.shape)}  HxW=({H},{W})  div14=({H%14==0},{W%14==0})")
         assert H % 14 == 0 and W % 14 == 0, f"{tag}: output size not divisible by 14!"
         if Ks_in is not None or Ks_out is not None:
@@ -444,7 +447,7 @@ if __name__ == "__main__":
             Es_in = [np.eye(4, dtype=np.float32), np.eye(4, dtype=np.float32)]
 
             for m in methods:
-                tensor, Es_out, Ks_out = proc(
+                tensor, _Es_out, Ks_out = proc(
                     image=batch_imgs,
                     process_res=process_res,
                     process_res_method=m,
@@ -456,7 +459,7 @@ if __name__ == "__main__":
                 show_result(f"{suite_name} size=({w},{h}) | {m}", tensor, Ks_in, Ks_out)
 
             # Also test None path
-            tensor2, Es_out2, Ks_out2 = proc(
+            tensor2, _Es_out2, Ks_out2 = proc(
                 image=batch_imgs,
                 process_res=process_res,
                 process_res_method="upper_bound_resize",

@@ -13,15 +13,15 @@
 # limitations under the License.
 
 from typing import List
+
 import numpy as np
 import torch
-from evo.core.trajectory import PosePath3D
-
 from depth_anything_3.utils.geometry import affine_inverse, affine_inverse_np
+from evo.core.trajectory import PosePath3D
 
 
 def batch_apply_alignment_to_enc(
-    rots: torch.Tensor, trans: torch.Tensor, scales: torch.Tensor, enc_list: List[torch.Tensor]
+    rots: torch.Tensor, trans: torch.Tensor, scales: torch.Tensor, enc_list: list[torch.Tensor]
 ):
     pass
 
@@ -197,7 +197,7 @@ def align_poses_umeyama(
 # def align_poses_umeyama(ext_ref: np.ndarray, ext_est: np.ndarray, return_aligned=False):
 #     """
 #     Align estimated trajectory to reference trajectory using Umeyama Sim(3)
-#     alignment (via evo PosePath3D). # noqa
+#     alignment (via evo PosePath3D).
 #     Returns rotation, translation, and scale.
 #     """
 #     # If input extrinsics are 3x4, convert to 4x4 by padding

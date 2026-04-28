@@ -35,6 +35,7 @@ import argparse
 import collections
 import os
 import struct
+
 import numpy as np
 
 CameraModel = collections.namedtuple("CameraModel", ["model_id", "model_name", "num_params"])
@@ -173,7 +174,7 @@ def write_cameras_text(cameras, path):
     )
     with open(path, "w") as fid:
         fid.write(HEADER)
-        for _, cam in cameras.items():
+        for cam in cameras.values():
             to_write = [cam.id, cam.model, cam.width, cam.height, *cam.params]
             line = " ".join([str(elem) for elem in to_write])
             fid.write(line + "\n")
@@ -187,7 +188,7 @@ def write_cameras_binary(cameras, path_to_model_file):
     """
     with open(path_to_model_file, "wb") as fid:
         write_next_bytes(fid, len(cameras), "Q")
-        for _, cam in cameras.items():
+        for cam in cameras.values():
             model_id = CAMERA_MODEL_NAMES[cam.model].model_id
             camera_properties = [cam.id, model_id, cam.width, cam.height]
             write_next_bytes(fid, camera_properties, "iiQQ")
@@ -298,14 +299,12 @@ def write_images_text(images, path):
         "# Image list with two lines of data per image:\n"
         + "#   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME\n"
         + "#   POINTS2D[] as (X, Y, POINT3D_ID)\n"
-        + "# Number of images: {}, mean observations per image: {}\n".format(
-            len(images), mean_observations
-        )
+        + f"# Number of images: {len(images)}, mean observations per image: {mean_observations}\n"
     )
 
     with open(path, "w") as fid:
         fid.write(HEADER)
-        for _, img in images.items():
+        for img in images.values():
             image_header = [
                 img.id,
                 *img.qvec,
@@ -330,7 +329,7 @@ def write_images_binary(images, path_to_model_file):
     """
     with open(path_to_model_file, "wb") as fid:
         write_next_bytes(fid, len(images), "Q")
-        for _, img in images.items():
+        for img in images.values():
             write_next_bytes(fid, img.id, "i")
             write_next_bytes(fid, img.qvec.tolist(), "dddd")
             write_next_bytes(fid, img.tvec.tolist(), "ddd")
@@ -424,14 +423,12 @@ def write_points3D_text(points3D, path):
     HEADER = (
         "# 3D point list with one line of data per point:\n"
         + "#   POINT3D_ID, X, Y, Z, R, G, B, ERROR, TRACK[] as (IMAGE_ID, POINT2D_IDX)\n"
-        + "# Number of points: {}, mean track length: {}\n".format(
-            len(points3D), mean_track_length
-        )
+        + f"# Number of points: {len(points3D)}, mean track length: {mean_track_length}\n"
     )
 
     with open(path, "w") as fid:
         fid.write(HEADER)
-        for _, pt in points3D.items():
+        for pt in points3D.values():
             point_header = [pt.id, *pt.xyz, *pt.rgb, pt.error]
             fid.write(" ".join(map(str, point_header)) + " ")
             track_strings = []
@@ -448,7 +445,7 @@ def write_points3D_binary(points3D, path_to_model_file):
     """
     with open(path_to_model_file, "wb") as fid:
         write_next_bytes(fid, len(points3D), "Q")
-        for _, pt in points3D.items():
+        for pt in points3D.values():
             write_next_bytes(fid, pt.id, "Q")
             write_next_bytes(fid, pt.xyz.tolist(), "ddd")
             write_next_bytes(fid, pt.rgb.tolist(), "BBB")

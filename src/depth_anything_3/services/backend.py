@@ -1,4 +1,3 @@
-# flake8: noqa: E501
 # Copyright (c) 2025 ByteDance Ltd. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +21,11 @@ import os
 import posixpath
 import time
 import uuid
-
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
-import numpy as np
 
+import numpy as np
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
@@ -35,24 +33,24 @@ from pydantic import BaseModel
 
 from ..api import DepthAnything3
 from ..utils.memory import (
-    get_gpu_memory_info,
-    cleanup_cuda_memory,
     check_memory_availability,
+    cleanup_cuda_memory,
     estimate_memory_requirement,
+    get_gpu_memory_info,
 )
 
 
 class InferenceRequest(BaseModel):
     """Request model for inference API."""
 
-    image_paths: List[str]
+    image_paths: list[str]
     export_dir: Optional[str] = None
     export_format: str = "mini_npz-glb"
-    extrinsics: Optional[List[List[List[float]]]] = None
-    intrinsics: Optional[List[List[List[float]]]] = None
+    extrinsics: Optional[list[list[list[float]]]] = None
+    intrinsics: Optional[list[list[list[float]]]] = None
     process_res: int = 504
     process_res_method: str = "upper_bound_resize"
-    export_feat_layers: List[int] = []
+    export_feat_layers: list[int] = []
     align_to_input_ext_scale: bool = True
     # GLB export parameters
     conf_thresh_percentile: float = 40.0
@@ -96,7 +94,7 @@ class TaskStatus(BaseModel):
 class ModelBackend:
     """Model backend service with persistent model loading."""
 
-    def __init__(self, model_dir: str, device: str = "cuda"):
+    def __init__(self, model_dir: str, device: str = "cuda") -> None:
         self.model_dir = model_dir
         self.device = device
         self.model = None
@@ -139,7 +137,7 @@ class ModelBackend:
         self.last_used = time.time()
         return self.model
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get backend status information."""
         # Calculate uptime from when model loading completed
         uptime = 0
@@ -159,17 +157,17 @@ class ModelBackend:
 # Global backend instance
 _backend: Optional[ModelBackend] = None
 _app: Optional[FastAPI] = None
-_tasks: Dict[str, TaskStatus] = {}
+_tasks: dict[str, TaskStatus] = {}
 _executor = ThreadPoolExecutor(max_workers=1)  # Restrict to single-task execution
 _running_task_id: Optional[str] = None  # Currently running task ID
-_task_queue: List[str] = []  # Pending task queue
+_task_queue: list[str] = []  # Pending task queue
 
 # Task cleanup configuration
 MAX_TASK_HISTORY = 100  # Maximum number of tasks to keep in memory
 CLEANUP_INTERVAL = 300  # Cleanup interval in seconds (5 minutes)
 
 
-def _process_next_task():
+def _process_next_task() -> None:
     """Process the next task in the queue."""
     global _task_queue, _running_task_id
 
@@ -199,7 +197,7 @@ def _process_next_task():
 # estimate_memory_requirement imported from depth_anything_3.utils.memory
 
 
-def _run_inference_task(task_id: str):
+def _run_inference_task(task_id: str) -> None:
     """Run inference task in background thread with OOM protection."""
     global _tasks, _backend, _running_task_id, _task_queue
 
@@ -262,7 +260,7 @@ def _run_inference_task(task_id: str):
             if "out of memory" in str(e).lower():
                 cleanup_cuda_memory()
                 raise RuntimeError(
-                    f"OOM during model loading: {str(e)}\n"
+                    f"OOM during model loading: {e!s}\n"
                     f"Try reducing the batch size or resolution."
                 )
             raise
@@ -315,7 +313,7 @@ def _run_inference_task(task_id: str):
             if "out of memory" in str(e).lower():
                 cleanup_cuda_memory()
                 raise RuntimeError(
-                    f"OOM during inference: {str(e)}\n"
+                    f"OOM during inference: {e!s}\n"
                     f"Settings: {num_images} images, resolution={request.process_res}\n"
                     f"Suggestions:\n"
                     f"  1. Reduce process_res to {int(request.process_res * 0.75)}\n"
@@ -389,7 +387,7 @@ def _run_inference_task(task_id: str):
         _schedule_task_cleanup()
 
 
-def _cleanup_old_tasks():
+def _cleanup_old_tasks() -> None:
     """Clean up old completed/failed tasks to prevent memory buildup."""
     global _tasks
 
@@ -434,10 +432,10 @@ def _cleanup_old_tasks():
     )
 
 
-def _schedule_task_cleanup():
+def _schedule_task_cleanup() -> None:
     """Schedule task cleanup in background."""
 
-    def cleanup_worker():
+    def cleanup_worker() -> None:
         try:
             time.sleep(2)  # Small delay to ensure task status is updated
             _cleanup_old_tasks()
@@ -1279,7 +1277,7 @@ def create_app(model_dir: str, device: str = "cuda", gallery_dir: Optional[str] 
             _cleanup_old_tasks()
             return {"message": "Cleanup completed", "active_tasks": len(_tasks)}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Cleanup failed: {e!s}")
 
     @_app.delete("/task/{task_id}")
     async def delete_task(task_id: str):
@@ -1306,7 +1304,7 @@ def create_app(model_dir: str, device: str = "cuda", gallery_dir: Optional[str] 
             _backend.load_model()
             return {"message": "Model reloaded successfully"}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to reload model: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to reload model: {e!s}")
 
     # ============================================================================
     # Gallery routes
@@ -1329,7 +1327,7 @@ def create_app(model_dir: str, device: str = "cuda", gallery_dir: Optional[str] 
                 return build_group_list(_gallery_dir)
             except Exception as e:
                 raise HTTPException(
-                    status_code=500, detail=f"Failed to build group list: {str(e)}"
+                    status_code=500, detail=f"Failed to build group list: {e!s}"
                 )
 
         @_app.get("/gallery/manifest/{group}.json")
@@ -1341,7 +1339,7 @@ def create_app(model_dir: str, device: str = "cuda", gallery_dir: Optional[str] 
                 return build_group_manifest(_gallery_dir, group)
             except Exception as e:
                 raise HTTPException(
-                    status_code=500, detail=f"Failed to build group manifest: {str(e)}"
+                    status_code=500, detail=f"Failed to build group manifest: {e!s}"
                 )
 
         @_app.get("/gallery/{path:path}")

@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch.nn as nn
-
 from depth_anything_3.model.utils.attention import Mlp
 from depth_anything_3.model.utils.block import Block
 from depth_anything_3.model.utils.transform import extri_intri_to_pose_encoding
 from depth_anything_3.utils.geometry import affine_inverse
+from torch import nn
 
 
 class CameraEnc(nn.Module):
@@ -37,7 +36,7 @@ class CameraEnc(nn.Module):
         mlp_ratio: int = 4,
         init_values: float = 0.01,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__()
         self.target_dim = target_dim
         self.trunk_depth = trunk_depth

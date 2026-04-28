@@ -27,7 +27,7 @@ def export(
     export_format: str,
     export_dir: str,
     **kwargs,
-):
+) -> None:
     if "-" in export_format:
         export_formats = export_format.split("-")
         for export_format in export_formats:

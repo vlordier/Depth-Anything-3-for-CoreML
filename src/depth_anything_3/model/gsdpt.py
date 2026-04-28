@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Sequence
 from typing import Dict as TyDict
-from typing import List, Sequence
-import torch
-import torch.nn as nn
+from typing import List
 
+import torch
 from depth_anything_3.model.dpt import DPT
 from depth_anything_3.model.utils.head_utils import activate_head_gs, custom_interpolate
+from torch import nn
 
 
 class GSDPT(DPT):
@@ -75,12 +76,12 @@ class GSDPT(DPT):
     # -------------------------------------------------------------------------
     def _forward_impl(
         self,
-        feats: List[torch.Tensor],
+        feats: list[torch.Tensor],
         H: int,
         W: int,
         patch_start_idx: int,
         images: torch.Tensor,
-    ) -> TyDict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         B, _, C = feats[0].shape
         ph, pw = H // self.patch_size, W // self.patch_size
         resized_feats = []
@@ -117,7 +118,7 @@ class GSDPT(DPT):
 
         # 5) Main head: logits -> activate_head or single channel activation
         main_logits = self.scratch.output_conv2(feat)
-        outs: TyDict[str, torch.Tensor] = {}
+        outs: dict[str, torch.Tensor] = {}
         if self.has_conf:
             pred, conf = activate_head_gs(
                 main_logits,

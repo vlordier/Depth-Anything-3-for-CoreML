@@ -1,4 +1,3 @@
-# flake8: noqa: F722
 # Copyright (c) 2025 ByteDance Ltd. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@
 # limitations under the License.
 from types import SimpleNamespace
 from typing import Optional
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -114,7 +114,7 @@ def quat_to_mat(quaternions: torch.Tensor) -> torch.Tensor:
         ),
         -1,
     )
-    return o.reshape(quaternions.shape[:-1] + (3, 3))
+    return o.reshape((*quaternions.shape[:-1], 3, 3))
 
 
 def mat_to_quat(matrix: torch.Tensor) -> torch.Tensor:
@@ -133,7 +133,7 @@ def mat_to_quat(matrix: torch.Tensor) -> torch.Tensor:
 
     batch_dim = matrix.shape[:-2]
     m00, m01, m02, m10, m11, m12, m20, m21, m22 = torch.unbind(
-        matrix.reshape(batch_dim + (9,)), dim=-1
+        matrix.reshape((*batch_dim, 9)), dim=-1
     )
 
     q_abs = _sqrt_positive_part(
@@ -175,7 +175,7 @@ def mat_to_quat(matrix: torch.Tensor) -> torch.Tensor:
     # if not for numerical problems, quat_candidates[i] should be same (up to a sign),
     # forall i; we pick the best-conditioned one (with the largest denominator)
     out = quat_candidates[F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5, :].reshape(
-        batch_dim + (4,)
+        (*batch_dim, 4)
     )
 
     # Convert from rijk to ijkr

@@ -13,15 +13,15 @@
 # limitations under the License.
 
 from typing import Optional
-import torch
-from einops import einsum, rearrange, repeat
-from torch import nn
 
+import torch
 from depth_anything_3.model.utils.transform import cam_quat_xyzw_to_world_quat_wxyz
 from depth_anything_3.specs import Gaussians
 from depth_anything_3.utils.geometry import affine_inverse, get_world_rays, sample_image_grid
 from depth_anything_3.utils.pose_align import batch_align_poses_umeyama
 from depth_anything_3.utils.sh_helpers import rotate_sh
+from einops import einsum, rearrange, repeat
+from torch import nn
 
 
 class GaussianAdapter(nn.Module):
@@ -34,7 +34,7 @@ class GaussianAdapter(nn.Module):
         pred_offset_xy: bool = True,
         gaussian_scale_min: float = 1e-5,
         gaussian_scale_max: float = 30.0,
-    ):
+    ) -> None:
         super().__init__()
         self.sh_degree = sh_degree
         self.pred_color = pred_color

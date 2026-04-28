@@ -14,10 +14,12 @@
 
 import asyncio
 import os
+from collections.abc import Callable
 from functools import wraps
 from multiprocessing.pool import ThreadPool
 from threading import Thread
-from typing import Callable, Dict, List
+from typing import Dict, List
+
 import imageio
 from tqdm import tqdm
 
@@ -32,19 +34,20 @@ def async_call_func(func):
     return wrapper
 
 
-slice_func = lambda chunk_index, chunk_dim, chunk_size: [slice(None)] * chunk_dim + [
+def slice_func(chunk_index, chunk_dim, chunk_size):
+    return [slice(None)] * chunk_dim + [
     slice(chunk_index, chunk_index + chunk_size)
 ]
 
 
 def async_call(fn):
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> None:
         Thread(target=fn, args=args, kwargs=kwargs).start()
 
     return wrapper
 
 
-def _save_image_impl(save_img, save_path):
+def _save_image_impl(save_img, save_path) -> None:
     """Common implementation for saving images synchronously or asynchronously"""
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     imageio.imwrite(save_path, save_img)
@@ -77,7 +80,7 @@ def parallel_execution(
     # `*args` packs all positional arguments passed to the function into a tuple
     args = list(args)
 
-    def get_length(args: List, kwargs: Dict):
+    def get_length(args: list, kwargs: dict):
         for a in args:
             if isinstance(a, list):
                 return len(a)
@@ -86,7 +89,7 @@ def parallel_execution(
                 return len(v)
         raise NotImplementedError
 
-    def get_action_args(length: int, args: List, kwargs: Dict, i: int):
+    def get_action_args(length: int, args: list, kwargs: dict, i: int):
         action_args = [
             (arg[i] if isinstance(arg, list) and len(arg) == length else arg) for arg in args
         ]

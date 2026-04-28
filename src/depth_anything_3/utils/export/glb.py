@@ -14,14 +14,18 @@
 
 from __future__ import annotations
 
+import itertools
 import os
+from typing import TYPE_CHECKING
+
 import numpy as np
 import trimesh
-
-from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.logger import logger
 
 from .depth_vis import export_to_depth_vis
+
+if TYPE_CHECKING:
+    from depth_anything_3.specs import Prediction
 
 
 def set_sky_depth(prediction: Prediction, sky_mask: np.ndarray, sky_depth_def: float = 98.0):
@@ -397,7 +401,7 @@ def _camera_frustum_lines(
         segs.append(np.stack([Cw, plane_w[k]], 0))
     # rectangle edges
     order = [0, 1, 2, 3, 0]
-    for a, b in zip(order[:-1], order[1:]):
+    for a, b in itertools.pairwise(order):
         segs.append(np.stack([plane_w[a], plane_w[b]], 0))
 
     return np.stack(segs, 0)  # (8,2,3)

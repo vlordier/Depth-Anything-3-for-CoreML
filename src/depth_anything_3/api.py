@@ -21,22 +21,26 @@ inference, and export capabilities. It supports both single and nested model arc
 from __future__ import annotations
 
 import time
-from typing import Optional, Sequence
+from typing import TYPE_CHECKING, Optional
+
 import numpy as np
 import torch
-import torch.nn as nn
-from huggingface_hub import PyTorchModelHubMixin
-from PIL import Image
-
 from depth_anything_3.cfg import create_object, load_config
 from depth_anything_3.registry import MODEL_REGISTRY
-from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.export import export
 from depth_anything_3.utils.geometry import affine_inverse
 from depth_anything_3.utils.io.input_processor import InputProcessor
 from depth_anything_3.utils.io.output_processor import OutputProcessor
 from depth_anything_3.utils.logger import logger
 from depth_anything_3.utils.pose_align import align_poses_umeyama
+from huggingface_hub import PyTorchModelHubMixin
+from torch import nn
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from depth_anything_3.specs import Prediction
+    from PIL import Image
 
 torch.backends.cudnn.benchmark = False
 # logger.info("CUDNN Benchmark Disabled")
@@ -72,7 +76,7 @@ class DepthAnything3(nn.Module, PyTorchModelHubMixin):
 
     _commit_hash: str | None = None  # Set by mixin when loading from Hub
 
-    def __init__(self, model_name: str = "da3-large", **kwargs):
+    def __init__(self, model_name: str = "da3-large", **kwargs) -> None:
         """
         Initialize DepthAnything3 with specified preset.
 
@@ -119,9 +123,8 @@ class DepthAnything3(nn.Module, PyTorchModelHubMixin):
         """
         # Determine optimal autocast dtype
         autocast_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        with torch.no_grad():
-            with torch.autocast(device_type=image.device.type, dtype=autocast_dtype):
-                return self.model(image, extrinsics, intrinsics, export_feat_layers, infer_gs)
+        with torch.no_grad(), torch.autocast(device_type=image.device.type, dtype=autocast_dtype):
+            return self.model(image, extrinsics, intrinsics, export_feat_layers, infer_gs)
 
     def inference(
         self,
@@ -145,7 +148,7 @@ class DepthAnything3(nn.Module, PyTorchModelHubMixin):
         # Feat_vis export parameters
         feat_vis_fps: int = 15,
         # Other export parameters, e.g., gs_ply, gs_video
-        export_kwargs: Optional[dict] = {},
+        export_kwargs: Optional[dict] = None,
     ) -> Prediction:
         """
         Run inference on input images.
@@ -173,6 +176,8 @@ class DepthAnything3(nn.Module, PyTorchModelHubMixin):
         Returns:
             Prediction object containing depth maps and camera parameters
         """
+        if export_kwargs is None:
+            export_kwargs = {}
         if "gs" in export_format:
             assert infer_gs, "must set `infer_gs=True` to perform gs-related export."
 
@@ -208,6 +213,7 @@ class DepthAnything3(nn.Module, PyTorchModelHubMixin):
 
         # Export if requested
         if export_dir is not None:
+            export_kwargs = export_kwargs if export_kwargs is not None else {}
 
             if "gs" in export_format:
                 if infer_gs and "gs_video" not in export_format:

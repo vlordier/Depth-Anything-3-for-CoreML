@@ -35,10 +35,10 @@ def get_env_log_level():
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self) -> None:
         self.level = get_env_log_level()
 
-    def log(self, level_str, *args, **kwargs):
+    def log(self, level_str, *args, **kwargs) -> None:
         level_key = level_str.split(":")[0].strip()
         level_val = LOG_LEVELS.get(level_key)
         if level_val is None:
@@ -58,16 +58,16 @@ class Logger:
                 **kwargs,
             )
 
-    def error(self, *args, **kwargs):
+    def error(self, *args, **kwargs) -> None:
         self.log("ERROR:", *args, **kwargs)
 
-    def warn(self, *args, **kwargs):
+    def warn(self, *args, **kwargs) -> None:
         self.log("WARN:", *args, **kwargs)
 
-    def info(self, *args, **kwargs):
+    def info(self, *args, **kwargs) -> None:
         self.log("INFO:", *args, **kwargs)
 
-    def debug(self, *args, **kwargs):
+    def debug(self, *args, **kwargs) -> None:
         self.log("DEBUG:", *args, **kwargs)
 
 

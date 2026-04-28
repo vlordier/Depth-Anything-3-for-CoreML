@@ -9,7 +9,6 @@
 
 
 from typing import List
-import torch.nn as nn
 
 from depth_anything_3.model.dinov2.vision_transformer import (
     vit_base,
@@ -17,19 +16,20 @@ from depth_anything_3.model.dinov2.vision_transformer import (
     vit_large,
     vit_small,
 )
+from torch import nn
 
 
 class DinoV2(nn.Module):
     def __init__(
         self,
         name: str,
-        out_layers: List[int],
+        out_layers: list[int],
         alt_start: int = -1,
         qknorm_start: int = -1,
         rope_start: int = -1,
         cat_token: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__()
         assert name in {"vits", "vitb", "vitl", "vitg"}
         self.name = name

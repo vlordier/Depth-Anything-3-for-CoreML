@@ -13,11 +13,12 @@
 # limitations under the License.
 
 from typing import Any
+
 from addict import Dict
 
 
 class Registry(Dict[str, Any]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._map = Dict({})
 

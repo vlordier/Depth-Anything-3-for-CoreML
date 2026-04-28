@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import os
+
 import imageio
 import numpy as np
-
 from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.visualize import visualize_depth
 

@@ -22,13 +22,13 @@ data processing, and result preparation.
 import glob
 import os
 from typing import Any, Dict, Optional, Tuple
+
 import numpy as np
 import torch
-
 from depth_anything_3.api import DepthAnything3
-from depth_anything_3.utils.memory import cleanup_cuda_memory
 from depth_anything_3.utils.export.glb import export_to_glb
 from depth_anything_3.utils.export.gs import export_to_gs_video
+from depth_anything_3.utils.memory import cleanup_cuda_memory
 
 
 class ModelInference:
@@ -36,7 +36,7 @@ class ModelInference:
     Handles model inference and data processing for Depth Anything 3.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the model inference handler."""
         self.model = None
 
@@ -72,7 +72,7 @@ class ModelInference:
         infer_gs: bool = False,
         gs_trj_mode: str = "extend",
         gs_video_quality: str = "high",
-    ) -> Tuple[Any, Dict[int, Dict[str, Any]]]:
+    ) -> tuple[Any, dict[int, dict[str, Any]]]:
         """
         Run DepthAnything3 model inference on images.
 
@@ -237,7 +237,7 @@ class ModelInference:
 
     def _process_results(
         self, target_dir: str, prediction: Any, image_paths: list
-    ) -> Dict[int, Dict[str, Any]]:
+    ) -> dict[int, dict[str, Any]]:
         """
         Process model results into structured data.
 

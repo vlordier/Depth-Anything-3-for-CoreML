@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import os
+
 import cv2
 import imageio
 import numpy as np
-from tqdm.auto import tqdm
-
 from depth_anything_3.utils.parallel_utils import async_call
 from depth_anything_3.utils.pca_utils import PCARGBVisualizer
+from tqdm.auto import tqdm
 
 
 @async_call

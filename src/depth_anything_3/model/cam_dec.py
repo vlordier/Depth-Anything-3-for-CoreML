@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class CameraDec(nn.Module):
-    def __init__(self, dim_in=1536):
+    def __init__(self, dim_in=1536) -> None:
         super().__init__()
         output_dim = dim_in
         self.backbone = nn.Sequential(

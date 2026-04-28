@@ -15,9 +15,8 @@
 import matplotlib
 import numpy as np
 import torch
-from einops import rearrange
-
 from depth_anything_3.utils.logger import logger
+from einops import rearrange
 
 
 def visualize_depth(
@@ -68,7 +67,7 @@ def visualize_depth(
     img_colored_np = cm(depth[None], bytes=False)[:, :, :, 0:3]  # value from 0 to 1
     if ret_type == np.uint8:
         img_colored_np = (img_colored_np[0] * 255.0).astype(np.uint8)
-    elif ret_type == np.float32 or ret_type == np.float64:
+    elif ret_type in (np.float32, np.float64):
         img_colored_np = img_colored_np[0]
     else:
         raise ValueError(f"Invalid return type: {ret_type}")

@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from typing import Tuple, Union
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 # -----------------------------------------------------------------------------
 # Activation functions
@@ -83,9 +84,9 @@ def activate_head_gs(out, activation="norm_exp", conf_activation="expp1", conf_d
 class Permute(nn.Module):
     """nn.Module wrapper around Tensor.permute for cleaner nn.Sequential usage."""
 
-    dims: Tuple[int, ...]
+    dims: tuple[int, ...]
 
-    def __init__(self, dims: Tuple[int, ...]) -> None:
+    def __init__(self, dims: tuple[int, ...]) -> None:
         super().__init__()
         self.dims = dims
 
@@ -152,7 +153,7 @@ def make_sincos_pos_embed(embed_dim: int, pos: torch.Tensor, omega_0: float = 10
 def create_uv_grid(
     width: int,
     height: int,
-    aspect_ratio: float = None,
+    aspect_ratio: float | None = None,
     dtype: torch.dtype = None,
     device: torch.device = None,
 ) -> torch.Tensor:
@@ -204,8 +205,8 @@ def create_uv_grid(
 # -----------------------------------------------------------------------------
 def custom_interpolate(
     x: torch.Tensor,
-    size: Union[Tuple[int, int], None] = None,
-    scale_factor: Union[float, None] = None,
+    size: tuple[int, int] | None = None,
+    scale_factor: float | None = None,
     mode: str = "bilinear",
     align_corners: bool = True,
 ) -> torch.Tensor:

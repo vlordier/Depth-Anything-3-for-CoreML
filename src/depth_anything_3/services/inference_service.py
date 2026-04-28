@@ -18,6 +18,7 @@ Provides unified interface for local and remote inference
 """
 
 from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
 import requests
 import typer
@@ -28,7 +29,7 @@ from ..api import DepthAnything3
 class InferenceService:
     """Unified inference service class"""
 
-    def __init__(self, model_dir: str, device: str = "cuda"):
+    def __init__(self, model_dir: str, device: str = "cuda") -> None:
         self.model_dir = model_dir
         self.device = device
         self.model = None
@@ -42,12 +43,12 @@ class InferenceService:
 
     def run_local_inference(
         self,
-        image_paths: List[str],
+        image_paths: list[str],
         export_dir: str,
         export_format: str = "mini_npz-glb",
         process_res: int = 504,
         process_res_method: str = "upper_bound_resize",
-        export_feat_layers: List[int] = None,
+        export_feat_layers: list[int] | None = None,
         extrinsics: Optional[np.ndarray] = None,
         intrinsics: Optional[np.ndarray] = None,
         align_to_input_ext_scale: bool = True,
@@ -94,13 +95,13 @@ class InferenceService:
 
     def run_backend_inference(
         self,
-        image_paths: List[str],
+        image_paths: list[str],
         export_dir: str,
         backend_url: str,
         export_format: str = "mini_npz-glb",
         process_res: int = 504,
         process_res_method: str = "upper_bound_resize",
-        export_feat_layers: List[int] = None,
+        export_feat_layers: list[int] | None = None,
         extrinsics: Optional[np.ndarray] = None,
         intrinsics: Optional[np.ndarray] = None,
         align_to_input_ext_scale: bool = True,
@@ -108,7 +109,7 @@ class InferenceService:
         num_max_points: int = 1_000_000,
         show_cameras: bool = True,
         feat_vis_fps: int = 15,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run backend inference"""
         if export_feat_layers is None:
             export_feat_layers = []
@@ -169,7 +170,7 @@ class InferenceService:
 
 
 def run_inference(
-    image_paths: List[str],
+    image_paths: list[str],
     export_dir: str,
     model_dir: str,
     device: str = "cuda",
@@ -177,7 +178,7 @@ def run_inference(
     export_format: str = "mini_npz-glb",
     process_res: int = 504,
     process_res_method: str = "upper_bound_resize",
-    export_feat_layers: List[int] = None,
+    export_feat_layers: list[int] | None = None,
     extrinsics: Optional[np.ndarray] = None,
     intrinsics: Optional[np.ndarray] = None,
     align_to_input_ext_scale: bool = True,
@@ -185,7 +186,7 @@ def run_inference(
     num_max_points: int = 1_000_000,
     show_cameras: bool = True,
     feat_vis_fps: int = 15,
-) -> Union[Any, Dict[str, Any]]:
+) -> Any | dict[str, Any]:
     """Unified inference interface"""
 
     service = InferenceService(model_dir, device)

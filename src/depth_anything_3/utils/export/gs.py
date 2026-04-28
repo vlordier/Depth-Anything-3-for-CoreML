@@ -14,9 +14,9 @@
 
 import os
 from typing import Literal, Optional
+
 import moviepy.editor as mpy
 import torch
-
 from depth_anything_3.model.utils.gs_renderer import run_renderer_in_chunk_w_trj_mode
 from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.gsply_helpers import save_gaussian_ply
@@ -151,4 +151,3 @@ def export_to_gs_video(
             fps=fps,
             ffmpeg_params=ffmpeg_params,
         )
-    return

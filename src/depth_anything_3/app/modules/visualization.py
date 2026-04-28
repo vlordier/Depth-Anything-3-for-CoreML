@@ -20,6 +20,7 @@ This module handles visualization updates, navigation, and measurement functiona
 
 import os
 from typing import Any, Dict, List, Optional, Tuple
+
 import cv2
 import gradio as gr
 import numpy as np
@@ -30,12 +31,12 @@ class VisualizationHandler:
     Handles visualization updates and navigation for the Gradio app.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the visualization handler."""
 
     def update_view_selectors(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]]
-    ) -> Tuple[gr.Dropdown, gr.Dropdown]:
+        self, processed_data: Optional[dict[int, dict[str, Any]]]
+    ) -> tuple[gr.Dropdown, gr.Dropdown]:
         """
         Update view selector dropdowns based on available views.
 
@@ -57,8 +58,8 @@ class VisualizationHandler:
         )
 
     def get_view_data_by_index(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]], view_index: int
-    ) -> Optional[Dict[str, Any]]:
+        self, processed_data: Optional[dict[int, dict[str, Any]]], view_index: int
+    ) -> Optional[dict[str, Any]]:
         """
         Get view data by index, handling bounds.
 
@@ -79,7 +80,7 @@ class VisualizationHandler:
         return processed_data[view_keys[view_index]]
 
     def update_depth_view(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]], view_index: int
+        self, processed_data: Optional[dict[int, dict[str, Any]]], view_index: int
     ) -> Optional[str]:
         """
         Update depth view for a specific view index.
@@ -100,10 +101,10 @@ class VisualizationHandler:
 
     def navigate_depth_view(
         self,
-        processed_data: Optional[Dict[int, Dict[str, Any]]],
+        processed_data: Optional[dict[int, dict[str, Any]]],
         current_selector_value: str,
         direction: int,
-    ) -> Tuple[str, Optional[str]]:
+    ) -> tuple[str, Optional[str]]:
         """
         Navigate depth view (direction: -1 for previous, +1 for next).
 
@@ -133,8 +134,8 @@ class VisualizationHandler:
         return new_selector_value, depth_vis
 
     def update_measure_view(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]], view_index: int
-    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], List]:
+        self, processed_data: Optional[dict[int, dict[str, Any]]], view_index: int
+    ) -> tuple[Optional[np.ndarray], Optional[np.ndarray], list]:
         """
         Update measure view for a specific view index.
 
@@ -172,7 +173,7 @@ class VisualizationHandler:
                 depth_combined = cv2.imread(depth_image_path)
                 depth_combined = cv2.cvtColor(depth_combined, cv2.COLOR_BGR2RGB)
                 if depth_combined is not None:
-                    height, width = depth_combined.shape[:2]
+                    _height, width = depth_combined.shape[:2]
                     # Extract right half (depth visualization part)
                     depth_right_half = depth_combined[:, width // 2 :]
             except Exception as e:
@@ -182,10 +183,10 @@ class VisualizationHandler:
 
     def navigate_measure_view(
         self,
-        processed_data: Optional[Dict[int, Dict[str, Any]]],
+        processed_data: Optional[dict[int, dict[str, Any]]],
         current_selector_value: str,
         direction: int,
-    ) -> Tuple[str, Optional[np.ndarray], Optional[str], List]:
+    ) -> tuple[str, Optional[np.ndarray], Optional[str], list]:
         """
         Navigate measure view (direction: -1 for previous, +1 for next).
 
@@ -217,8 +218,8 @@ class VisualizationHandler:
         return new_selector_value, measure_image, depth_right_half, measure_points
 
     def populate_visualization_tabs(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]]
-    ) -> Tuple[Optional[str], Optional[np.ndarray], Optional[str], List]:
+        self, processed_data: Optional[dict[int, dict[str, Any]]]
+    ) -> tuple[Optional[str], Optional[np.ndarray], Optional[str], list]:
         """
         Populate the depth and measure tabs with processed data.
 
@@ -238,8 +239,8 @@ class VisualizationHandler:
         return depth_vis, measure_img, depth_right_half, []
 
     def reset_measure(
-        self, processed_data: Optional[Dict[int, Dict[str, Any]]]
-    ) -> Tuple[Optional[np.ndarray], List, str]:
+        self, processed_data: Optional[dict[int, dict[str, Any]]]
+    ) -> tuple[Optional[np.ndarray], list, str]:
         """
         Reset measure points.
 
@@ -253,16 +254,16 @@ class VisualizationHandler:
             return None, [], ""
 
         # Return the first view image
-        first_view = list(processed_data.values())[0]
+        first_view = next(iter(processed_data.values()))
         return first_view["image"], [], ""
 
     def measure(
         self,
-        processed_data: Optional[Dict[int, Dict[str, Any]]],
-        measure_points: List,
+        processed_data: Optional[dict[int, dict[str, Any]]],
+        measure_points: list,
         current_view_selector: str,
         event: gr.SelectData,
-    ) -> List:
+    ) -> list:
         """
         Handle measurement on images.
 
@@ -347,7 +348,7 @@ class VisualizationHandler:
                         d = current_view["depth"][p[1], p[0]]
                         depth_text += f"- **P{i + 1} depth: {d:.2f}m**\n"
                     else:
-                        depth_text += f"- **P{i + 1}: Click position ({p[0]}, {p[1]}) - No depth information**\n"  # noqa: E501
+                        depth_text += f"- **P{i + 1}: Click position ({p[0]}, {p[1]}) - No depth information**\n"
             except Exception as e:
                 print(f"Depth text error: {e}")
                 depth_text = f"Error computing depth: {e}\n"
@@ -412,7 +413,7 @@ class VisualizationHandler:
                                 avg_depth = (d1 + d2) / 2
                                 scale_factor = avg_depth / 1000  # Rough scaling factor
                                 estimated_3d_distance = pixel_distance * scale_factor
-                                distance_text = f"- **Distance: {estimated_3d_distance:.2f}m (estimated, no intrinsics)**"  # noqa: E501
+                                distance_text = f"- **Distance: {estimated_3d_distance:.2f}m (estimated, no intrinsics)**"
 
                         except Exception as e:
                             print(f"Distance computation error: {e}")

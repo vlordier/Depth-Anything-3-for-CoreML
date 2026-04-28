@@ -17,8 +17,10 @@ Configuration utility functions
 """
 
 import importlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, List, Union
+from typing import Any, List, Union
+
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
 try:
@@ -28,7 +30,7 @@ except Exception as e:
     print(f"Error registering eval resolver: {e}")
 
 
-def load_config(path: str, argv: List[str] = None) -> Union[DictConfig, ListConfig]:
+def load_config(path: str, argv: list[str] | None = None) -> DictConfig | ListConfig:
     """
     Load a configuration. Will resolve inheritance.
     Supports both file paths and module paths (e.g., depth_anything_3.configs.giant).
@@ -55,11 +57,11 @@ def load_config(path: str, argv: List[str] = None) -> Union[DictConfig, ListConf
 
 def resolve_recursive(
     config: Any,
-    resolver: Callable[[Union[DictConfig, ListConfig]], Union[DictConfig, ListConfig]],
+    resolver: Callable[[DictConfig | ListConfig], DictConfig | ListConfig],
 ) -> Any:
     config = resolver(config)
     if isinstance(config, DictConfig):
-        for k in config.keys():
+        for k in config:
             v = config.get(k)
             if isinstance(v, (DictConfig, ListConfig)):
                 config[k] = resolve_recursive(v, resolver)
@@ -71,7 +73,7 @@ def resolve_recursive(
     return config
 
 
-def resolve_inheritance(config: Union[DictConfig, ListConfig]) -> Any:
+def resolve_inheritance(config: DictConfig | ListConfig) -> Any:
     """
     Recursively resolve inheritance if the config contains:
     __inherit__: path/to/parent.yaml or a ListConfig of such paths.

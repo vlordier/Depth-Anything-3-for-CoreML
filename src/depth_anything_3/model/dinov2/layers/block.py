@@ -1,4 +1,3 @@
-# flake8: noqa: F821
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
@@ -10,7 +9,9 @@
 #   https://github.com/rwightman/pytorch-image-models/tree/master/timm/layers/patch_embed.py
 
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
+
 import torch
 from torch import Tensor, nn
 
@@ -110,7 +111,7 @@ def drop_add_residual_stochastic_depth(
     pos: Optional[Tensor] = None,
 ) -> Tensor:
     # 1) extract subset using permutation
-    b, n, d = x.shape
+    b, _n, _d = x.shape
     sample_subset_size = max(int(b * (1 - sample_drop_ratio)), 1)
     brange = (torch.randperm(b, device=x.device))[:sample_subset_size]
     x_subset = x[brange]
@@ -136,7 +137,7 @@ def drop_add_residual_stochastic_depth(
 
 
 def get_branges_scales(x, sample_drop_ratio=0.0):
-    b, n, d = x.shape
+    b, _n, _d = x.shape
     sample_subset_size = max(int(b * (1 - sample_drop_ratio)), 1)
     brange = (torch.randperm(b, device=x.device))[:sample_subset_size]
     residual_scale_factor = b / sample_subset_size

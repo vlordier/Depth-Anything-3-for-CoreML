@@ -8,19 +8,20 @@
 #   https://github.com/rwightman/pytorch-image-models/tree/master/timm/models/vision_transformer.py
 
 import math
-from typing import Callable, List, Sequence, Tuple, Union
+from collections.abc import Callable, Sequence
+from typing import List, Tuple, Union
+
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.utils.checkpoint
-from einops import rearrange
-
 from depth_anything_3.utils.logger import logger
+from einops import rearrange
+from torch import nn
 
-from .layers import LayerScale  # noqa: F401
-from .layers import Mlp  # noqa: F401
-from .layers import (  # noqa: F401
+from .layers import (
     Block,
+    LayerScale,
+    Mlp,
     PatchEmbed,
     PositionGetter,
     RotaryPositionEmbedding2D,
@@ -103,7 +104,7 @@ class DinoVisionTransformer(nn.Module):
         rope_freq=100,
         plus_cam_token=False,
         cat_token=True,
-    ):
+    ) -> None:
         """
         Args:
             img_size (int, tuple): input image size
@@ -172,7 +173,7 @@ class DinoVisionTransformer(nn.Module):
         if ffn_layer == "mlp":
             logger.info("using MLP layer as FFN")
             ffn_layer = Mlp
-        elif ffn_layer == "swiglufused" or ffn_layer == "swiglu":
+        elif ffn_layer in {"swiglufused", "swiglu"}:
             logger.info("using SwiGLU layer as FFN")
             ffn_layer = SwiGLUFFNFused
         elif ffn_layer == "identity":
@@ -253,7 +254,7 @@ class DinoVisionTransformer(nn.Module):
         return cls_token
 
     def prepare_tokens_with_masks(self, x, masks=None, cls_token=None, **kwargs):
-        B, S, nc, w, h = x.shape
+        B, S, _nc, w, h = x.shape
         x = rearrange(x, "b s c h w -> (b s) c h w")
         x = self.patch_embed(x)
         if masks is not None:
@@ -291,7 +292,9 @@ class DinoVisionTransformer(nn.Module):
                 pos_nodiff = torch.cat([pos_special, pos_nodiff], dim=2)
         return pos, pos_nodiff
 
-    def _get_intermediate_layers_not_chunked(self, x, n=1, export_feat_layers=[], **kwargs):
+    def _get_intermediate_layers_not_chunked(self, x, n=1, export_feat_layers=None, **kwargs):
+        if export_feat_layers is None:
+            export_feat_layers = []
         B, S, _, H, W = x.shape
         x = self.prepare_tokens_with_masks(x)
         output, total_block_len, aux_output = [], len(self.blocks), []
@@ -305,21 +308,20 @@ class DinoVisionTransformer(nn.Module):
                 g_pos = pos_nodiff
                 l_pos = pos
             if self.alt_start != -1 and i == self.alt_start:
-                if kwargs.get("cam_token", None) is not None:
+                if kwargs.get("cam_token") is not None:
                     logger.info("Using camera conditions provided by the user")
                     cam_token = kwargs.get("cam_token")
+                elif S == 1:
+                    cam_token = self.camera_token[:, :1].expand(B, S, -1)
                 else:
-                    if S == 1:
-                        cam_token = self.camera_token[:, :1].expand(B, S, -1)
-                    else:
-                        ref_token = self.camera_token[:, :1].expand(B, 1, -1)
-                        src_token = self.camera_token[:, 1:2].expand(B, S - 1, -1)
-                        cam_token = torch.cat([ref_token, src_token], dim=1)
+                    ref_token = self.camera_token[:, :1].expand(B, 1, -1)
+                    src_token = self.camera_token[:, 1:2].expand(B, S - 1, -1)
+                    cam_token = torch.cat([ref_token, src_token], dim=1)
                 x[:, :, 0] = cam_token
 
             if self.alt_start != -1 and i >= self.alt_start and i % 2 == 1:
                 x = self.process_attention(
-                    x, blk, "global", pos=g_pos, attn_mask=kwargs.get("attn_mask", None)
+                    x, blk, "global", pos=g_pos, attn_mask=kwargs.get("attn_mask")
                 )
             else:
                 x = self.process_attention(x, blk, "local", pos=l_pos)
@@ -333,7 +335,7 @@ class DinoVisionTransformer(nn.Module):
         return output, aux_output
 
     def process_attention(self, x, block, attn_type="global", pos=None, attn_mask=None):
-        b, s, n = x.shape[:3]
+        b, s, _n = x.shape[:3]
         if attn_type == "local":
             x = rearrange(x, "b s n c -> (b s) n c")
             if pos is not None:
@@ -356,10 +358,12 @@ class DinoVisionTransformer(nn.Module):
     def get_intermediate_layers(
         self,
         x: torch.Tensor,
-        n: Union[int, Sequence] = 1,  # Layers or n last layers to take
-        export_feat_layers: List[int] = [],
+        n: int | Sequence = 1,  # Layers or n last layers to take
+        export_feat_layers: list[int] | None = None,
         **kwargs,
-    ) -> Tuple[Union[torch.Tensor, Tuple[torch.Tensor]]]:
+    ) -> tuple[torch.Tensor | tuple[torch.Tensor]]:
+        if export_feat_layers is None:
+            export_feat_layers = []
         outputs, aux_outputs = self._get_intermediate_layers_not_chunked(
             x, n, export_feat_layers=export_feat_layers, **kwargs
         )

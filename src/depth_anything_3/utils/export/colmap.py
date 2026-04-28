@@ -13,14 +13,13 @@
 # limitations under the License.
 
 import os
-import pycolmap
+
 import cv2 as cv
 import numpy as np
-
-from PIL import Image
-
+import pycolmap
 from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.logger import logger
+from PIL import Image
 
 from .glb import _depths_to_world_points_with_colors
 

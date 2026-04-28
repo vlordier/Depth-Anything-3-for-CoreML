@@ -13,13 +13,13 @@
 # limitations under the License.
 from pathlib import Path
 from typing import Optional
+
 import numpy as np
 import torch
+from depth_anything_3.specs import Gaussians
 from einops import rearrange, repeat
 from plyfile import PlyData, PlyElement
 from torch import Tensor
-
-from depth_anything_3.specs import Gaussians
 
 
 def construct_list_of_attributes(num_rest: int) -> list[str]:

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import os
-import numpy as np
 
+import numpy as np
 from depth_anything_3.specs import Prediction
 from depth_anything_3.utils.parallel_utils import async_call
 

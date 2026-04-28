@@ -15,10 +15,7 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
 from addict import Dict
-from omegaconf import DictConfig, OmegaConf
-
 from depth_anything_3.cfg import create_object
 from depth_anything_3.model.utils.transform import pose_encoding_to_extri_intri
 from depth_anything_3.utils.alignment import (
@@ -30,6 +27,8 @@ from depth_anything_3.utils.alignment import (
     set_sky_regions_to_max_depth,
 )
 from depth_anything_3.utils.geometry import affine_inverse, as_homogeneous, map_pdf_to_opacity
+from omegaconf import DictConfig, OmegaConf
+from torch import nn
 
 
 def _wrap_cfg(cfg_obj):
@@ -62,7 +61,7 @@ class DepthAnything3Net(nn.Module):
     # Patch size for feature extraction
     PATCH_SIZE = 14
 
-    def __init__(self, net, head, cam_dec=None, cam_enc=None, gs_head=None, gs_adapter=None):
+    def __init__(self, net, head, cam_dec=None, cam_enc=None, gs_head=None, gs_adapter=None) -> None:
         """
         Initialize DepthAnything3Net with given yaml-initialized configuration.
         """
@@ -101,7 +100,7 @@ class DepthAnything3Net(nn.Module):
         x: torch.Tensor,
         extrinsics: torch.Tensor | None = None,
         intrinsics: torch.Tensor | None = None,
-        export_feat_layers: list[int] | None = [],
+        export_feat_layers: list[int] | None = None,
         infer_gs: bool = False,
     ) -> torch.Tensor:
         """
@@ -117,6 +116,8 @@ class DepthAnything3Net(nn.Module):
             Dictionary containing predictions and auxiliary features
         """
         # Extract features using backbone
+        if export_feat_layers is None:
+            export_feat_layers = []
         if extrinsics is not None:
             with torch.autocast(device_type=x.device.type, enabled=False):
                 cam_token = self.cam_enc(extrinsics, intrinsics, x.shape[-2:])
@@ -261,7 +262,7 @@ class NestedDepthAnything3Net(nn.Module):
         second_preset: Configuration for the metric depth branch
     """
 
-    def __init__(self, anyview: DictConfig, metric: DictConfig):
+    def __init__(self, anyview: DictConfig, metric: DictConfig) -> None:
         """
         Initialize NestedDepthAnything3Net with two branches.
 
@@ -278,7 +279,7 @@ class NestedDepthAnything3Net(nn.Module):
         x: torch.Tensor,
         extrinsics: torch.Tensor | None = None,
         intrinsics: torch.Tensor | None = None,
-        export_feat_layers: list[int] | None = [],
+        export_feat_layers: list[int] | None = None,
         infer_gs: bool = False,
     ) -> Dict[str, torch.Tensor]:
         """
@@ -295,6 +296,8 @@ class NestedDepthAnything3Net(nn.Module):
             Dictionary containing aligned depth predictions and camera parameters
         """
         # Get predictions from both branches
+        if export_feat_layers is None:
+            export_feat_layers = []
         output = self.da3(
             x, extrinsics, intrinsics, export_feat_layers=export_feat_layers, infer_gs=infer_gs
         )

@@ -6,6 +6,7 @@ from typing import Tuple
 import coremltools as ct
 import numpy
 import torch
+from coremltools import precision
 from PIL import Image
 from safetensors.torch import load_file
 from torch import Tensor, inference_mode
@@ -57,7 +58,7 @@ def load_depth_estimator(weights_path: Path) -> DepthAnything3Net:
 
 MODEL = load_depth_estimator(DEFAULT_WEIGHTS_PATH)
 
-def resize_and_pad(image: Image.Image, target_size: int) -> Tuple[Image.Image, Tuple[int, int]]:
+def resize_and_pad(image: Image.Image, target_size: int) -> tuple[Image.Image, tuple[int, int]]:
     width, height = image.size
     scale = min(target_size / width, target_size / height)
     scaled_width = int(width * scale)
@@ -95,7 +96,12 @@ def visualize_depth(depth: numpy.ndarray) -> Image.Image:
 def export_coreml_model(depth_model: DepthAnything3Net, output_path: Path) -> None:
     example_input = torch.rand(EXAMPLE_INPUT_SHAPE)
     traced_model = torch.jit.trace(depth_model, example_input)
-    model_from_trace = ct.convert(traced_model, inputs=[ct.TensorType(shape=EXAMPLE_INPUT_SHAPE)])
+    # Convert with FP16 for faster inference on Apple Silicon
+    model_from_trace = ct.convert(
+        traced_model,
+        inputs=[ct.TensorType(shape=EXAMPLE_INPUT_SHAPE)],
+        compute_precision=precision.FLOAT16
+    )
     model_from_trace.save(str(output_path))
 
 def parse_args() -> argparse.Namespace:

@@ -44,14 +44,12 @@ def render_stabilization_path(poses, k_size=45):
 
     # Make k_size safe: positive odd and not larger than num_frames
     # 1) Ensure odd
-    if k_size < 1:
-        k_size = 1
+    k_size = max(k_size, 1)
     if k_size % 2 == 0:
         k_size += 1
     # 2) Cap to num_frames (keep odd)
     max_odd = num_frames if (num_frames % 2 == 1) else (num_frames - 1)
-    if max_odd < 1:
-        max_odd = 1  # covers num_frames == 0 theoretically
+    max_odd = max(max_odd, 1)  # covers num_frames == 0 theoretically
     k_size = min(k_size, max_odd)
     # 3) enforce a minimum of 3 when possible (for better smoothing)
     if num_frames >= 3 and k_size < 3:

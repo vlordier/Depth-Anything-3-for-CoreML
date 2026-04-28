@@ -21,11 +21,14 @@ batch dimension removal, and Prediction object creation.
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
+
 import torch
 from addict import Dict as AddictDict
-
 from depth_anything_3.specs import Prediction
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class OutputProcessor:
@@ -59,8 +62,8 @@ class OutputProcessor:
         intrinsics = self._extract_intrinsics(model_output)
         sky = self._extract_sky(model_output)
         aux = self._extract_aux(model_output)
-        gaussians = model_output.get("gaussians", None)
-        scale_factor = model_output.get("scale_factor", None)
+        gaussians = model_output.get("gaussians")
+        scale_factor = model_output.get("scale_factor")
 
         return Prediction(
             depth=depth,
@@ -97,7 +100,7 @@ class OutputProcessor:
         Returns:
             Confidence array with shape (N, H, W) or None
         """
-        conf = model_output.get("depth_conf", None)
+        conf = model_output.get("depth_conf")
         if conf is not None:
             conf = conf.squeeze(0).cpu().numpy()  # (N, H, W)
         return conf
@@ -112,7 +115,7 @@ class OutputProcessor:
         Returns:
             Extrinsics array with shape (N, 4, 4) or None
         """
-        extrinsics = model_output.get("extrinsics", None)
+        extrinsics = model_output.get("extrinsics")
         if extrinsics is not None:
             extrinsics = extrinsics.squeeze(0).cpu().numpy()  # (N, 4, 4)
         return extrinsics
@@ -127,7 +130,7 @@ class OutputProcessor:
         Returns:
             Intrinsics array with shape (N, 3, 3) or None
         """
-        intrinsics = model_output.get("intrinsics", None)
+        intrinsics = model_output.get("intrinsics")
         if intrinsics is not None:
             intrinsics = intrinsics.squeeze(0).cpu().numpy()  # (N, 3, 3)
         return intrinsics
@@ -142,7 +145,7 @@ class OutputProcessor:
         Returns:
             Sky mask array with shape (N, H, W) or None
         """
-        sky = model_output.get("sky", None)
+        sky = model_output.get("sky")
         if sky is not None:
             sky = sky.squeeze(0).cpu().numpy() >= 0.5  # (N, H, W)
         return sky
@@ -157,10 +160,10 @@ class OutputProcessor:
         Returns:
             Dictionary containing auxiliary data
         """
-        aux = model_output.get("aux", None)
+        aux = model_output.get("aux")
         ret = AddictDict()
         if aux is not None:
-            for k in aux.keys():
+            for k in aux:
                 if isinstance(aux[k], torch.Tensor):
                     ret[k] = aux[k].squeeze(0).cpu().numpy()
                 else:

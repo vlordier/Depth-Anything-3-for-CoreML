@@ -15,9 +15,10 @@
 
 
 from typing import Dict, Tuple
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 
 class PositionGetter:
@@ -31,9 +32,9 @@ class PositionGetter:
             grid dimensions.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the position generator with an empty cache."""
-        self.position_cache: Dict[Tuple[int, int], torch.Tensor] = {}
+        self.position_cache: dict[tuple[int, int], torch.Tensor] = {}
 
     def __call__(
         self, batch_size: int, height: int, width: int, device: torch.device
@@ -78,16 +79,16 @@ class RotaryPositionEmbedding2D(nn.Module):
         frequency_cache: Cache for storing precomputed frequency components.
     """
 
-    def __init__(self, frequency: float = 100.0, scaling_factor: float = 1.0):
+    def __init__(self, frequency: float = 100.0, scaling_factor: float = 1.0) -> None:
         """Initializes the 2D RoPE module."""
         super().__init__()
         self.base_frequency = frequency
         self.scaling_factor = scaling_factor
-        self.frequency_cache: Dict[Tuple, Tuple[torch.Tensor, torch.Tensor]] = {}
+        self.frequency_cache: dict[tuple, tuple[torch.Tensor, torch.Tensor]] = {}
 
     def _compute_frequency_components(
         self, dim: int, seq_len: int, device: torch.device, dtype: torch.dtype
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Computes frequency components for rotary embeddings.
 
         Args:

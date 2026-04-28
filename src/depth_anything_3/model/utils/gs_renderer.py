@@ -15,10 +15,8 @@
 import math
 from math import isqrt
 from typing import Literal, Optional
-import torch
-from einops import rearrange, repeat
-from tqdm import tqdm
 
+import torch
 from depth_anything_3.specs import Gaussians
 from depth_anything_3.utils.camera_trj_helpers import (
     interpolate_extrinsics,
@@ -30,6 +28,8 @@ from depth_anything_3.utils.camera_trj_helpers import (
 )
 from depth_anything_3.utils.geometry import affine_inverse, as_homogeneous, get_fov
 from depth_anything_3.utils.logger import logger
+from einops import rearrange, repeat
+from tqdm import tqdm
 
 try:
     from gsplat import rasterization
@@ -123,7 +123,7 @@ def render_3dgs(
             i
         ]  # [v, 3]
 
-        render_colors, render_alphas, info = rasterization(
+        render_colors, _render_alphas, info = rasterization(
             means=i_means,
             quats=i_quats,  # [N, 4]
             scales=i_scales,  # [N, 3]

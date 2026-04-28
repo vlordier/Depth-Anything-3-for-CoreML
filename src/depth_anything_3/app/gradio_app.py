@@ -22,8 +22,8 @@ The original functionality has been split into modular components for better mai
 import argparse
 import os
 from typing import Any, Dict, List
-import gradio as gr
 
+import gradio as gr
 from depth_anything_3.app.css_and_html import GRADIO_CSS, get_gradio_theme
 from depth_anything_3.app.modules.event_handlers import EventHandlers
 from depth_anything_3.app.modules.ui_components import UIComponents
@@ -37,7 +37,7 @@ class DepthAnything3App:
     Main application class for Depth Anything 3 Gradio app.
     """
 
-    def __init__(self, model_dir: str = None, workspace_dir: str = None, gallery_dir: str = None):
+    def __init__(self, model_dir: str | None = None, workspace_dir: str | None = None, gallery_dir: str | None = None) -> None:
         """
         Initialize the application.
 
@@ -147,7 +147,7 @@ class DepthAnything3App:
                     print(f"  ✗ Scene '{scene_name}' loading failed")
 
             except Exception as e:
-                print(f"  ✗ Error caching scene '{scene_name}': {str(e)}")
+                print(f"  ✗ Error caching scene '{scene_name}': {e!s}")
 
             print()
 
@@ -174,7 +174,7 @@ class DepthAnything3App:
             measure_points_state = gr.State(value=[])
             selected_first_frame_state = gr.State(value="")
             selected_image_index_state = gr.State(value=0)  # Track selected image index
-            # current_view_index = gr.State(value=0)  # noqa: F841 Track current view index
+            # current_view_index = gr.State(value=0)
 
             # Header and description
             self.ui_components.create_header_section()
@@ -194,65 +194,64 @@ class DepthAnything3App:
                         select_first_frame_btn,
                     ) = self.ui_components.create_upload_section()
 
-                with gr.Column(scale=4):
-                    with gr.Column():
-                        # gr.Markdown("**Metric 3D Reconstruction (Point Cloud and Camera Poses)**")
-                        # Reconstruction control section (buttons) - moved below tabs
+                with gr.Column(scale=4), gr.Column():
+                    # gr.Markdown("**Metric 3D Reconstruction (Point Cloud and Camera Poses)**")
+                    # Reconstruction control section (buttons) - moved below tabs
 
-                        log_output = gr.Markdown(
-                            "Please upload a video or images, then click Reconstruct.",
-                            elem_classes=["custom-log"],
-                        )
+                    log_output = gr.Markdown(
+                        "Please upload a video or images, then click Reconstruct.",
+                        elem_classes=["custom-log"],
+                    )
 
-                        # Tabbed interface
-                        with gr.Tabs():
-                            with gr.Tab("Point Cloud & Cameras"):
-                                reconstruction_output = (
-                                    self.ui_components.create_3d_viewer_section()
-                                )
+                    # Tabbed interface
+                    with gr.Tabs():
+                        with gr.Tab("Point Cloud & Cameras"):
+                            reconstruction_output = (
+                                self.ui_components.create_3d_viewer_section()
+                            )
 
-                            with gr.Tab("Metric Depth"):
-                                (
-                                    prev_measure_btn,
-                                    measure_view_selector,
-                                    next_measure_btn,
-                                    measure_image,
-                                    measure_depth_image,
-                                    measure_text,
-                                ) = self.ui_components.create_measure_section()
+                        with gr.Tab("Metric Depth"):
+                            (
+                                prev_measure_btn,
+                                measure_view_selector,
+                                next_measure_btn,
+                                measure_image,
+                                measure_depth_image,
+                                measure_text,
+                            ) = self.ui_components.create_measure_section()
 
-                            with gr.Tab("3DGS Rendered Novel Views"):
-                                gs_video, gs_info = self.ui_components.create_nvs_video()
+                        with gr.Tab("3DGS Rendered Novel Views"):
+                            gs_video, gs_info = self.ui_components.create_nvs_video()
 
-                        # Inference control section (before inference)
-                        (process_res_method_dropdown, infer_gs) = (
-                            self.ui_components.create_inference_control_section()
-                        )
+                    # Inference control section (before inference)
+                    (process_res_method_dropdown, infer_gs) = (
+                        self.ui_components.create_inference_control_section()
+                    )
 
-                        # Display control section - includes 3DGS options, buttons, and Visualization Options  # noqa: E501
-                        (
-                            show_cam,
-                            filter_black_bg,
-                            filter_white_bg,
-                            save_percentage,
-                            num_max_points,
-                            gs_trj_mode,
-                            gs_video_quality,
-                            submit_btn,
-                            clear_btn,
-                        ) = self.ui_components.create_display_control_section()
+                    # Display control section - includes 3DGS options, buttons, and Visualization Options
+                    (
+                        show_cam,
+                        filter_black_bg,
+                        filter_white_bg,
+                        save_percentage,
+                        num_max_points,
+                        gs_trj_mode,
+                        gs_video_quality,
+                        submit_btn,
+                        clear_btn,
+                    ) = self.ui_components.create_display_control_section()
 
-                        # bind visibility of gs_trj_mode to infer_gs
-                        infer_gs.change(
-                            fn=lambda checked: (
-                                gr.update(visible=checked),
-                                gr.update(visible=checked),
-                                gr.update(visible=checked),
-                                gr.update(visible=(not checked)),
-                            ),
-                            inputs=infer_gs,
-                            outputs=[gs_trj_mode, gs_video_quality, gs_video, gs_info],
-                        )
+                    # bind visibility of gs_trj_mode to infer_gs
+                    infer_gs.change(
+                        fn=lambda checked: (
+                            gr.update(visible=checked),
+                            gr.update(visible=checked),
+                            gr.update(visible=checked),
+                            gr.update(visible=(not checked)),
+                        ),
+                        inputs=infer_gs,
+                        outputs=[gs_trj_mode, gs_video_quality, gs_video, gs_info],
+                    )
 
             # Example scenes section
             gr.Markdown("## Example Scenes")
@@ -335,8 +334,8 @@ class DepthAnything3App:
         measure_text: gr.Markdown,
         prev_measure_btn: gr.Button,
         next_measure_btn: gr.Button,
-        scenes: List[Dict[str, Any]],
-        scene_components: List[gr.Image],
+        scenes: list[dict[str, Any]],
+        scene_components: list[gr.Image],
         gs_video: gr.Video,
         gs_info: gr.Markdown,
         gs_trj_mode: gr.Dropdown,
@@ -559,8 +558,8 @@ class DepthAnything3App:
 
     def _setup_example_scene_handlers(
         self,
-        scenes: List[Dict[str, Any]],
-        scene_components: List[gr.Image],
+        scenes: list[dict[str, Any]],
+        scene_components: list[gr.Image],
         reconstruction_output: gr.Model3D,
         target_dir_output: gr.Textbox,
         image_gallery: gr.Gallery,
@@ -577,7 +576,7 @@ class DepthAnything3App:
 
         def load_and_update_measure(name):
             result = self.event_handlers.load_example_scene(name)
-            # result = (reconstruction_output, target_dir, image_paths, log_message, processed_data, measure_view_selector, gs_video, gs_video_vis, gs_info_vis)  # noqa: E501
+            # result = (reconstruction_output, target_dir, image_paths, log_message, processed_data, measure_view_selector, gs_video, gs_video_vis, gs_info_vis)
 
             # Update measure view if processed_data is available
             measure_img = None
@@ -587,7 +586,7 @@ class DepthAnything3App:
                     self.event_handlers.visualization_handler.update_measure_view(result[4], 0)
                 )
 
-            return result + ("True", measure_img, measure_depth)
+            return (*result, "True", measure_img, measure_depth)
 
         for i, scene in enumerate(scenes):
             if i < len(scene_components):
@@ -662,13 +661,13 @@ Examples:
     )
     parser.add_argument(
         "--workspace-dir",
-        default="workspace/gradio",  # noqa: E501
-        help="Path to the workspace directory (default: workspace/gradio)",  # noqa: E501
+        default="workspace/gradio",
+        help="Path to the workspace directory (default: workspace/gradio)",
     )
     parser.add_argument(
         "--gallery-dir",
         default="workspace/gallery",
-        help="Path to the gallery directory (default: workspace/gallery)",  # noqa: E501
+        help="Path to the gallery directory (default: workspace/gallery)",
     )
 
     # Additional Gradio options
@@ -685,7 +684,7 @@ Examples:
         "--cache-gs-tag",
         type=str,
         default="",
-        help="Tag to match scene names for high-res+3DGS caching (e.g., 'dl3dv'). Scenes containing this tag will use high_res and infer_gs=True; others will use low_res only.",  # noqa: E501
+        help="Tag to match scene names for high-res+3DGS caching (e.g., 'dl3dv'). Scenes containing this tag will use high_res and infer_gs=True; others will use low_res only.",
     )
 
     args = parser.parse_args()
@@ -714,8 +713,8 @@ Examples:
     if args.cache_examples:
         if args.cache_gs_tag:
             print(
-                f"Cache GS Tag: '{args.cache_gs_tag}' (scenes matching this tag will use high-res + 3DGS)"  # noqa: E501
-            )  # noqa: E501
+                f"Cache GS Tag: '{args.cache_gs_tag}' (scenes matching this tag will use high-res + 3DGS)"
+            )
         else:
             print("Cache GS Tag: None (all scenes will use low-res only)")
 

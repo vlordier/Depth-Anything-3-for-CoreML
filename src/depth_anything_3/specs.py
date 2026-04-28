@@ -15,9 +15,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
-import numpy as np
-import torch
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    import numpy as np
+    import torch
 
 
 @dataclass
@@ -41,5 +43,5 @@ class Prediction:
     intrinsics: np.ndarray | None = None  # N, 3, 3
     processed_images: np.ndarray | None = None  # N, H, W, 3 - processed images for visualization
     gaussians: Gaussians | None = None  # 3D gaussians
-    aux: dict[str, Any] = None  #
+    aux: dict[str, Any] = None
     scale_factor: Optional[float] = None  # metric scale

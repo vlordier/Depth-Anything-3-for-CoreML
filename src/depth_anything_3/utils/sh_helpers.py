@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from math import isqrt
+
 import torch
 from einops import einsum
 
@@ -29,7 +30,7 @@ def project_to_so3_strict(M: torch.Tensor) -> torch.Tensor:
         raise ValueError("Input must be a batch of 3x3 matrices (i.e., shape [..., 3, 3]).")
 
     # 1. Compute SVD
-    U, S, Vh = torch.linalg.svd(M)
+    U, _S, Vh = torch.linalg.svd(M)
     V = Vh.mH
 
     # 2. Handle reflection case (det = -1)

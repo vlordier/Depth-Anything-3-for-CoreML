@@ -25,7 +25,9 @@ import os
 import shutil
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
+
 
 def create_depth_visualization(depth: np.ndarray) -> Optional[np.ndarray]:
     """
@@ -52,7 +54,7 @@ def create_depth_visualization(depth: np.ndarray) -> Optional[np.ndarray]:
     depth_norm = np.clip(depth_norm, 0, 1)
 
     # Apply colormap (using matplotlib's viridis colormap)
-    import matplotlib.cm as cm
+    from matplotlib import cm
 
     # Convert to colored image
     depth_colored = cm.viridis(depth_norm)[:, :, :3]  # Remove alpha channel
@@ -62,8 +64,8 @@ def create_depth_visualization(depth: np.ndarray) -> Optional[np.ndarray]:
 
 
 def save_to_gallery_func(
-    target_dir: str, processed_data: Dict[int, Dict[str, Any]], gallery_name: Optional[str] = None
-) -> Tuple[bool, str]:
+    target_dir: str, processed_data: dict[int, dict[str, Any]], gallery_name: Optional[str] = None
+) -> tuple[bool, str]:
     """
     Save the current reconstruction results to the gallery directory.
 
@@ -135,10 +137,10 @@ def save_to_gallery_func(
 
     except Exception as e:
         print(f"Error saving to gallery: {e}")
-        return False, f"Save failed: {str(e)}"
+        return False, f"Save failed: {e!s}"
 
 
-def get_scene_info(examples_dir: str) -> List[Dict[str, Any]]:
+def get_scene_info(examples_dir: str) -> list[dict[str, Any]]:
     """
     Get information about scenes in the examples directory.
 

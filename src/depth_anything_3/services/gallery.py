@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# flake8: noqa: E501
 # Copyright (c) 2025 ByteDance Ltd. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -702,7 +701,7 @@ def build_group_manifest(root_dir: str, group: str) -> dict:
 
 
 class GalleryHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, directory=None, **kwargs):
+    def __init__(self, *args, directory=None, **kwargs) -> None:
         super().__init__(*args, directory=directory, **kwargs)
 
     def do_GET(self):
@@ -753,7 +752,6 @@ class GalleryHandler(SimpleHTTPRequestHandler):
 
     def list_directory(self, path):
         self.send_error(HTTPStatus.NOT_FOUND, "Directory listing disabled")
-        return None
 
 
 def gallery():

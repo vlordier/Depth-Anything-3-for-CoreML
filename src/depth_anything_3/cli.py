@@ -1,4 +1,3 @@
-# flake8: noqa: E402
 # Copyright (c) 2025 ByteDance Ltd. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +19,8 @@ Clean, modular command-line interface
 from __future__ import annotations
 
 import os
-import typer
 
+import typer
 from depth_anything_3.services import start_server
 from depth_anything_3.services.gallery import gallery as gallery_main
 from depth_anything_3.services.inference_service import run_inference
@@ -665,7 +664,7 @@ def gradio(
                 f"Cache GS Tag: '{cache_gs_tag}' (scenes matching this tag will use high-res + 3DGS)"
             )
         else:
-            typer.echo(f"Cache GS Tag: None (all scenes will use low-res only)")
+            typer.echo("Cache GS Tag: None (all scenes will use low-res only)")
 
     try:
         # Initialize and launch application
@@ -679,9 +678,9 @@ def gradio(
             typer.echo("Pre-caching mode enabled")
             if cache_gs_tag:
                 typer.echo(f"Scenes containing '{cache_gs_tag}' will use HIGH-RES + 3DGS")
-                typer.echo(f"Other scenes will use LOW-RES only")
+                typer.echo("Other scenes will use LOW-RES only")
             else:
-                typer.echo(f"All scenes will use LOW-RES only")
+                typer.echo("All scenes will use LOW-RES only")
             typer.echo("=" * 60)
             app.cache_examples(
                 show_cam=True,
