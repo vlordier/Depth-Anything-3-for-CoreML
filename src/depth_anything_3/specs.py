@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import torch
 
 
-@dataclass
+@dataclass(slots=True)
 class Gaussians:
     """3DGS parameters, all in world space"""
 
@@ -33,7 +33,7 @@ class Gaussians:
     opacities: torch.Tensor  # opacity | opacity SH, "batch gaussian" | "batch gaussian 1 d_sh"
 
 
-@dataclass
+@dataclass(slots=True)
 class Prediction:
     depth: np.ndarray  # N, H, W
     is_metric: int
